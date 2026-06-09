@@ -1,15 +1,17 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
-  "name": "xyz.lonestaroracle/mcp",
-  "description": "37 AI data services for autonomous agents — crypto due diligence, DeFi liquidation risk, smart contract audits, equity analysis, energy markets, geopolitical risk, stablecoin monitoring, whale tracking, and more. Structured JSON output optimized for AI agent consumption.",
-  "version": "1.0.0",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "xyz.lonestaroracle/mcp-server",
+  "description": "37 AI data services for agents \u2014 crypto, DeFi risk, audits, equities, energy, and more.",
+  "version": "1.1.0",
   "repository": {
-    "url": "https://github.com/Homie4570/lso-mcp"
+    "url": "https://github.com/Homie4570/lso-mcp",
+    "source": "github",
+    "id": "1263466946"
   },
   "homepage": "https://lonestaroracle.xyz",
   "remotes": [
     {
-      "transportType": "sse",
+      "type": "sse",
       "url": "https://mcp.lonestaroracle.xyz/mcp"
     }
   ]
