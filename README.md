@@ -18,7 +18,7 @@
 | `whale_alert` | Real-time whale wallet tracking above a USD threshold |
 | `token_launches` | Newly launched token scanner — risk score, liquidity, deployer history |
 | `defi_risk` | DeFi protocol risk — TVL, audit status, exploit history |
-| `cascade_watch` | DeFi liquidation cascade risk — identifies systemic risk chains |
+| `cascade_watch` | DeFi liquidation cascade risk — systemic risk chain detection |
 | `stablecoin_pulse` | Stablecoin health — peg deviation, collateral ratio, depeg risk |
 
 ### Equities & Markets
