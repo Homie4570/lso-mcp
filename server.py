@@ -354,6 +354,23 @@ def pdf_to_markdown(url: str, summarize: bool = True) -> dict:
     return _get(f"{BASE}:8034/report", {"url": url, "summarize": str(summarize).lower()})
 
 
+
+# ── Token Launch Intelligence ──────────────────────────────────────────────────
+
+@mcp.tool()
+def wealth_pulse(address: str) -> dict:
+    """Wealth distribution and holder concentration for any ERC-20 token on Base.
+    Returns top holder breakdown, whale concentration, and redistribution risk score."""
+    return _get(f"{BASE}:8042/analyze", {"address": address})
+
+
+@mcp.tool()
+def bundle_scope(address: str) -> dict:
+    """Token launch bundle and sniper detection on Base. Scans first 3 blocks after launch
+    for same-block coordinated buys. Returns risk score, bundle wallets, and dump status.
+    Use before buying any new token to check if the launch was bundled."""
+    return _get(f"{BASE}:8043/scan", {"address": address})
+
 # ── Autonomous Agent ──────────────────────────────────────────────────────────
 
 @mcp.tool()
@@ -372,6 +389,9 @@ def hire_floyd(task: str, repo: str = "", context: str = "") -> dict:
 
 
 if __name__ == "__main__":
-    import uvicorn
-    app = mcp.http_app(path="/mcp")
-    uvicorn.run(app, host="0.0.0.0", port=8018, log_level="info")
+    if os.getenv("SERVE_HTTP"):
+        import uvicorn
+        app = mcp.http_app(path="/mcp")
+        uvicorn.run(app, host="0.0.0.0", port=8018, log_level="info")
+    else:
+        mcp.run()
