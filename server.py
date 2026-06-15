@@ -27,7 +27,7 @@ def _get(url: str, params: dict = None) -> dict:
         r = httpx.get(url, params=params, timeout=TIMEOUT)
         return r.json()
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": "Service temporarily unavailable"}
 
 
 # ── Crypto & Blockchain ───────────────────────────────────────────────────────
@@ -269,7 +269,7 @@ def content_forge(url: str) -> dict:
         r = httpx.post(f"{BASE}:8013/repurpose", json={"url": url}, timeout=60)
         return r.json()
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": "Service temporarily unavailable"}
 
 
 # ── Security Audits ───────────────────────────────────────────────────────────
@@ -289,7 +289,7 @@ def smart_contract_audit(source: str = "", github_url: str = "", contract_name: 
         r = httpx.post(f"{BASE}:8020/audit", json=payload, timeout=120)
         return r.json()
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": "Service temporarily unavailable"}
 
 
 @mcp.tool()
@@ -304,7 +304,7 @@ def rust_contract_audit(source: str = "", github_url: str = "") -> dict:
         r = httpx.post(f"{BASE}:8021/audit", json=payload, timeout=120)
         return r.json()
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": "Service temporarily unavailable"}
 
 
 @mcp.tool()
@@ -319,7 +319,7 @@ def move_contract_audit(source: str = "", github_url: str = "") -> dict:
         r = httpx.post(f"{BASE}:8022/audit", json=payload, timeout=120)
         return r.json()
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": "Service temporarily unavailable"}
 
 
 # ── DeFi & Staking ────────────────────────────────────────────────────────────
@@ -385,7 +385,7 @@ def hire_floyd(task: str, repo: str = "", context: str = "") -> dict:
         r = httpx.post(f"{BASE}:8011/hire", json=payload, timeout=30)
         return r.json()
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": "Service temporarily unavailable"}
 
 
 if __name__ == "__main__":
