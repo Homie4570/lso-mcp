@@ -100,13 +100,13 @@ def stablecoin_pulse(symbol: str = "") -> dict:
 
 @mcp.tool()
 def equity_analysis(ticker: str) -> dict:
-    """Stock analysis — price, fundamentals, technicals for any ticker."""
+    """Equity intelligence: buy/hold/sell signal, upside % to analyst target, P/E, EPS, health flags, AI analysis. US stocks and ETFs. Cached 30 min."""
     return _get(f"{BASE}:8005/equity", {"ticker": ticker})
 
 
 @mcp.tool()
 def options_flow(ticker: str) -> dict:
-    """Options flow intelligence — unusual activity, put/call ratios, large trades."""
+    """Options flow for stocks AND crypto (BTC/ETH/SOL/AVAX via Deribit). Returns signal (bullish/bearish/neutral), conviction trade with USD premium, put/call ratio, unusual activity. Crypto under 1s, stocks cached 5 min."""
     return _get(f"{BASE}:8006/flow", {"ticker": ticker})
 
 
@@ -130,22 +130,23 @@ def macro_indicators() -> dict:
 
 
 @mcp.tool()
-def earnings_calendar(ticker: str = "") -> dict:
-    """Upcoming earnings dates and consensus estimates. Pass ticker for specific company
-    or leave empty for upcoming week."""
-    params = {"ticker": ticker} if ticker else {}
+def earnings_calendar(tickers: str = "", days_soon: int = 7) -> dict:
+    """Earnings dates, estimates, and beat/miss history. Last 4 quarters: EPS actual/estimate, surprise %, day-after price reaction, consecutive beats. Pass tickers as comma-separated string. days_soon: near-term window in days (default 7, max 90)."""
+    params = {"days_soon": days_soon}
+    if tickers:
+        params["tickers"] = tickers
     return _get(f"{BASE}:8009/calendar", params)
 
 
 @mcp.tool()
 def tech_analysis(symbol: str, timeframe: str = "1d") -> dict:
-    """18 technical indicators + AI signal for any ticker. Timeframes: 15m, 1h, 4h, 1d."""
+    """18 technical indicators + AI signal for any ticker. Timeframes: 15m, 1h, 4h, 1d. Cached 5 min."""
     return _get(f"{BASE}:8024/aw/analyze", {"symbol": symbol, "timeframe": timeframe})
 
 
 @mcp.tool()
 def multi_timeframe_scan(symbol: str) -> dict:
-    """Multi-timeframe technical confluence score across 4 timeframes simultaneously."""
+    """Multi-timeframe TA confluence across 15m/1h/4h/1d: overall_signal (strong_buy/buy/neutral/sell/strong_sell), confluence_score, bull/bear breakdown, AI narrative. Cached 5 min."""
     return _get(f"{BASE}:8024/aw/scan", {"symbol": symbol})
 
 
@@ -227,11 +228,24 @@ def geo_pulse(region: str = "") -> dict:
 
 @mcp.tool()
 def gov_edge(min_amount: float = 10000000, days_back: int = 7, agency: str = None) -> dict:
-    """Federal contract award intelligence from USASpending.gov. Cross-references winners with stock tickers."""
+    """Federal contract awards from USASpending.gov $10M+. Cross-references winning vendors with stock tickers to surface market movers. Returns agency breakdown, award amounts, and AI narrative."""
     params = {"min_amount": min_amount, "days_back": days_back}
     if agency:
         params["agency"] = agency
     return _get(f"{BASE}:8031/report", params)
+
+
+@mcp.tool()
+def gov_edge_opportunities(keyword: str = "", naics: str = "", set_aside: str = "", days_back: int = 7) -> dict:
+    """Search active federal contract opportunities from SAM.gov. Returns solicitations with deadlines, urgency flags (<=14 days), agency, NAICS code, set-aside type, and AI BD briefing. Filters: keyword, naics, set_aside (SBA/8A/WOSB/HUBZone/VOSB/SDVOSB)."""
+    params = {"days_back": days_back}
+    if keyword:
+        params["keyword"] = keyword
+    if naics:
+        params["naics"] = naics
+    if set_aside:
+        params["set_aside"] = set_aside
+    return _get(f"{BASE}:8031/opportunities", params)
 
 
 @mcp.tool()
@@ -244,15 +258,20 @@ def latam_pulse() -> dict:
 
 @mcp.tool()
 def news_sentiment(query: str) -> dict:
-    """AI-powered news sentiment analysis for any ticker, company, or topic."""
+    """News sentiment for stocks and crypto. Crypto queries auto-route to native crypto sources; AI synthesizes and returns aggregate_score (-1.0 to +1.0) signal alongside bullish/bearish/neutral."""
     return _get(f"{BASE}:8004/news", {"query": query})
 
 
 @mcp.tool()
 def weather_forecast(city: str, date: str = "", threshold: float = None, direction: str = "greater") -> dict:
-    """GFS + ECMWF ensemble temperature forecast for prediction markets.
-    Cities: Chicago, New York, Miami, Denver, Houston, Phoenix, Seattle, Atlanta, Boston.
-    direction: 'greater' or 'less'. Used for Kalshi weather market analysis."""
+    """7-model consensus + 80 ensemble members (GEFS 30 + ECMWF 50) for weather probability.
+    When a threshold is given, returns both an empirical probability (direct member count) and
+    a blended prob_exceeds (60% empirical / 40% Gumbel). Also returns method_divergence: if
+    empirical and Gumbel disagree by >0.15, signal is forced to PASS regardless of spread.
+    Also returns: signal (YES/NO/PASS), outlier (which model disagrees most with consensus).
+    Coordinates aligned to NWS ASOS stations used by Kalshi/Polymarket for settlement.
+    Cities: Chicago, New York, Miami, Houston, Phoenix, Seattle, Denver, Atlanta, Boston, LA.
+    direction: 'greater' or 'less'. Cost: $0.02 via x402."""
     params = {"city": city}
     if date:
         params["date"] = date
@@ -276,10 +295,13 @@ def content_forge(url: str) -> dict:
 
 @mcp.tool()
 def smart_contract_audit(source: str = "", github_url: str = "", contract_name: str = "Contract") -> dict:
-    """Autonomous smart contract security audit using Claude Opus + Slither.
-    Finds reentrancy, access control, flash loan attacks, oracle manipulation,
-    and 20+ vulnerability classes. Returns Code4rena-format report with PoC exploits.
-    Provide either Solidity source code or a GitHub URL to a .sol file."""
+    """Solidity smart contract security audit powered by RattlerAI (Claude Opus + Slither).
+    Detects reentrancy, access control flaws, flash loan vulnerabilities, oracle manipulation,
+    integer overflow, MEV exposure, proxy upgrade risks, signature replay, and 20+ other
+    vulnerability classes. Slither cross-validates findings to filter false positives.
+    Returns a Code4rena-style severity report (Critical/High/Medium/Low) with root cause
+    analysis and fix recommendations. Ideal as a pre-deploy sanity check or audit triage.
+    Provide Solidity source code or a GitHub URL to a .sol file. Cost: $2.00 via x402."""
     payload = {"contract_name": contract_name}
     if source:
         payload["source"] = source
@@ -293,9 +315,14 @@ def smart_contract_audit(source: str = "", github_url: str = "", contract_name: 
 
 
 @mcp.tool()
-def rust_contract_audit(source: str = "", github_url: str = "") -> dict:
-    """Rust smart contract audit for CosmWasm, Anchor/Solana, Stellar/Soroban, NEAR."""
-    payload = {}
+def rust_contract_audit(source: str = "", github_url: str = "", contract_name: str = "Contract") -> dict:
+    """Rust smart contract security audit powered by CottonmouthAI (Claude Opus).
+    Auto-detects the framework (CosmWasm, Anchor/Solana, Stellar/Soroban, NEAR) and applies
+    targeted checks: unsafe arithmetic, missing account validation, signer privilege escalation,
+    PDA seed collisions, CPI reentrancy, storage layout bugs, and integer truncation.
+    Returns a severity-graded report (Critical/High/Medium/Low) with root cause analysis
+    and recommended fixes. Provide raw Rust source code or a GitHub URL. Cost: $2.00 via x402."""
+    payload = {"contract_name": contract_name}
     if source:
         payload["source"] = source
     if github_url:
@@ -308,9 +335,14 @@ def rust_contract_audit(source: str = "", github_url: str = "") -> dict:
 
 
 @mcp.tool()
-def move_contract_audit(source: str = "", github_url: str = "") -> dict:
-    """Move smart contract audit for Aptos and Sui. Finds resource leaks, capability confusion, object ownership bugs."""
-    payload = {}
+def move_contract_audit(source: str = "", github_url: str = "", contract_name: str = "Contract") -> dict:
+    """Move smart contract security audit powered by CopperheadAI (Claude Opus).
+    Covers Aptos and Sui. Detects resource leaks, capability confusion, object ownership
+    violations, signer abuse, type confusion, missing abort conditions, and privilege
+    escalation patterns specific to the Move VM and object model.
+    Returns a severity-graded report (Critical/High/Medium/Low) with root cause analysis
+    and remediation guidance. Provide raw Move source code or a GitHub URL. Cost: $2.00 via x402."""
+    payload = {"contract_name": contract_name}
     if source:
         payload["source"] = source
     if github_url:
@@ -326,10 +358,13 @@ def move_contract_audit(source: str = "", github_url: str = "") -> dict:
 
 @mcp.tool()
 def staking_yields(symbol: str = "") -> dict:
-    """Crypto staking yield intelligence: ETH, SOL, ATOM and more. Returns live APY rates
-    across protocols (Lido, Rocket Pool, native staking), exchange rates, spreads, and an
-    AI-generated narrative on where the best yield is. Pass symbol (ETH/SOL/ATOM) for a
-    single asset or leave blank for the full report."""
+    """Live staking yield comparison across 7 assets (ETH, SOL, ATOM, ADA, DOT, AVAX, MATIC).
+    For each asset returns: protocol APY (live), exchange rates (Coinbase/Kraken/Binance — live),
+    liquid staking options (Lido, Frax, Rocket Pool, Marinade, Jito — live from DeFiLlama),
+    liquid restaking options for ETH (ether.fi, Renzo, Kelp, Puffer — live), and a
+    best_strategy field naming the single highest-yield option with its risk level.
+    Use when an agent needs to know where to stake an asset for maximum yield.
+    Pass symbol (ETH/SOL/ATOM etc.) to filter, or leave blank for the full report. Cost: $0.05."""
     params = {}
     if symbol:
         params["symbol"] = symbol.upper()
@@ -358,10 +393,16 @@ def pdf_to_markdown(url: str, summarize: bool = True) -> dict:
 # ── Token Launch Intelligence ──────────────────────────────────────────────────
 
 @mcp.tool()
-def wealth_pulse(address: str) -> dict:
-    """Wealth distribution and holder concentration for any ERC-20 token on Base.
-    Returns top holder breakdown, whale concentration, and redistribution risk score."""
-    return _get(f"{BASE}:8042/analyze", {"address": address})
+def wealth_pulse(wallet: str = "", tickers: str = "", contracts: str = "") -> dict:
+    """Cross-asset portfolio risk analyzer. Pass a wallet address — auto-fetches all Base on-chain holdings (ERC-20 + ETH), values each position, flags stablecoin % and top concentration. Also accepts stock tickers and token contracts. Returns unified risk score 1-10, AI narrative, and cross_asset_flags."""
+    params = {}
+    if wallet:
+        params["wallet"] = wallet
+    if tickers:
+        params["tickers"] = tickers
+    if contracts:
+        params["contracts"] = contracts
+    return _get(f"{BASE}:8042/analyze", params)
 
 
 @mcp.tool()
