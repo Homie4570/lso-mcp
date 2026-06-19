@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir fastmcp httpx
+RUN pip install --no-cache-dir fastmcp==3.2.4 httpx
 
 COPY server.py .
 
