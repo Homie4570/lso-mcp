@@ -412,6 +412,14 @@ def bundle_scope(address: str) -> dict:
     Use before buying any new token to check if the launch was bundled."""
     return _get(f"{BASE}:8043/scan", {"address": address})
 
+@mcp.tool()
+def wallet_pnl(wallet: str, days: int = 30) -> dict:
+    """On-chain wallet PnL analyzer for Base. Returns net realized + unrealized gains,
+    portfolio value, win rate, current holdings with prices, and verdict
+    (Whale/Smart Money/Profitable/Break Even/Degen/Exit Liquidity)."""
+    return _get(f"{BASE}:8044/pnl", {"wallet": wallet, "days": days})
+
+
 # ── Autonomous Agent ──────────────────────────────────────────────────────────
 
 @mcp.tool()
