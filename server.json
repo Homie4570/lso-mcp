@@ -1,8 +1,8 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "xyz.lonestaroracle/mcp-server",
-  "description": "37 AI data services for agents \u2014 crypto, DeFi risk, audits, equities, energy, and more.",
-  "version": "1.1.0",
+  "description": "45 AI data tools for agents \u2014 crypto, DeFi risk, smart contract audits, equities, commodities, energy, weather, real estate, government intelligence, and more. Pay-per-call via x402 USDC on Base.",
+  "version": "1.1.1",
   "repository": {
     "url": "https://github.com/Homie4570/lso-mcp",
     "source": "github",
@@ -11,7 +11,7 @@
   "homepage": "https://lonestaroracle.xyz",
   "remotes": [
     {
-      "type": "sse",
+      "type": "streamable-http",
       "url": "https://mcp.lonestaroracle.xyz/mcp"
     }
   ]

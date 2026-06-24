@@ -41,27 +41,25 @@ def token_due_diligence(contract_address: str, chain: str = "eth") -> dict:
 
 @mcp.tool()
 def wallet_risk(address: str, chain: str = "eth") -> dict:
-    """Wallet risk scoring — transaction patterns, exposure, risk flags."""
+    """Wallet risk score (0-10) for any Ethereum address. Returns risk_score, sanctions_hit (OFAC screening), risk_flags (new_wallet/mixer_interaction/sanctions_exposure), wallet_age_days, tx_count, and DeFi protocols interacted with. Use before transacting with an unknown counterparty or screening a wallet for compliance."""
     return _get(f"{BASE}:8002/score", {"address": address, "chain": chain})
 
 
 @mcp.tool()
 def contract_check(address: str, chain: str = "eth") -> dict:
-    """Smart contract verification and security analysis."""
+    """Smart contract verification for any EVM address. Returns verified (source published on Etherscan), is_proxy, proxy_type (transparent/uups/beacon/none), owner address, and deployment age. Use before interacting with an unknown contract to detect hidden admin keys, upgradeable proxies, or unverified bytecode."""
     return _get(f"{BASE}:8003/verify", {"address": address, "chain": chain})
 
 
 @mcp.tool()
 def chainscout_intelligence() -> dict:
-    """On-chain intelligence: whale transfers ($5M+), trending tokens by volume,
-    DeFi TVL movements on Base and Ethereum. Refreshed every 15 minutes."""
+    """On-chain intelligence for Base and Ethereum. Returns whale_alerts (large transfers with from/to/amount/usd), dex_volume_24h, gas_price_gwei, and top DeFi protocol TVL rankings. Use to monitor large wallet movements, spot DEX volume spikes, or track DeFi protocol health. Refreshed every 15 minutes. Also exposes /whales, /trending, /tvl, /narrative endpoints."""
     return _get(f"{BASE}:8012/report")
 
 
 @mcp.tool()
 def whale_alert(min_usd: float = 1000000) -> dict:
-    """Real-time whale wallet tracking — large on-chain transfers above threshold.
-    Pass min_usd to filter by minimum transfer size (default $1M)."""
+    """Real-time whale transfer alerts on Base and Ethereum. Returns list of large on-chain transfers with sender, receiver, token, amount, and USD value. Pass min_usd to set threshold (default $1M). Use to detect smart money movements or monitor an ecosystem for unusual capital flows."""
     return _get(f"{BASE}:8039/whales", {"min_usd": min_usd})
 
 
@@ -112,7 +110,7 @@ def options_flow(ticker: str) -> dict:
 
 @mcp.tool()
 def insider_trading(ticker: str) -> dict:
-    """SEC Form 4 insider trading data — executive buy/sell transactions."""
+    """SEC Form 4 insider trading activity for any US stock ticker. Returns list of trades with insider name, role (CEO/CFO/Director), transaction_type (buy/sell), shares, USD value, and filing date. Insider buying clusters are a bullish signal; selling before earnings is a red flag. Pairs well with equity_analysis() and news_sentiment()."""
     return _get(f"{BASE}:8010/trades", {"ticker": ticker})
 
 
@@ -125,7 +123,7 @@ def portfolio_risk(tickers: str) -> dict:
 
 @mcp.tool()
 def macro_indicators() -> dict:
-    """Macro indicators — Fed funds rate, GDP, inflation, yield curve, DXY."""
+    """US macroeconomic regime snapshot. Returns fed_funds_rate, yield_curve_2s10s spread in bps (negative = inverted = recession signal), cpi_yoy inflation, unemployment_rate, pmi, and gdp_growth. Use to assess whether macro conditions favor risk-on or risk-off positioning. Pairs well with equity_analysis() and portfolio_risk()."""
     return _get(f"{BASE}:8008/macro")
 
 
@@ -168,19 +166,19 @@ def agricultural_commodities() -> dict:
 
 @mcp.tool()
 def industrial_metals() -> dict:
-    """Real-time industrial metals prices — copper, aluminum, steel, lithium, zinc + precious metals with AI narrative."""
+    """Real-time prices for 13 industrial metals with momentum signals and category analysis. Covers copper, aluminum, nickel, steel, lithium, iron ore, zinc, uranium, rare earths, gold, silver, platinum, palladium. GET /report — $0.05 via x402."""
     return _get(f"{BASE}:8026/report")
 
 
 @mcp.tool()
 def supply_chain_intelligence() -> dict:
-    """Supply chain intelligence — shipping rates, PPI, truck tonnage, manufacturing orders. Stress score 0-10."""
+    """Global supply chain stress monitor. Returns stress_score (0-10), shipping rates (dry bulk + container), NY Fed GSCPI, BLS PPI producer price inflation, directional momentum signal, and AI procurement brief. High stress_score signals input cost pressure and delivery delays upstream of earnings. GET /report — $0.05 via x402."""
     return _get(f"{BASE}:8027/report")
 
 
 @mcp.tool()
 def gpu_compute_prices() -> dict:
-    """Real-time GPU compute spot prices — H100, A100, A10G from Vast.ai, AWS, Lambda Labs."""
+    """Real-time GPU compute spot prices — H100, H200, B200, A100, A10G, L40S, RTX 4090 across Vast.ai, RunPod, AWS EC2 Spot, Lambda Labs. Returns best_deals per GPU tier, market_signal (buyer/balanced/tight), and AI infrastructure brief. $0.05 via x402."""
     return _get(f"{BASE}:8025/report")
 
 
@@ -220,8 +218,7 @@ def grid_intelligence(region: str = "") -> dict:
 
 @mcp.tool()
 def geo_pulse(region: str = "") -> dict:
-    """Geopolitical risk monitor — conflict zones, sanctions, political instability scores
-    by region. Returns risk score 1-10, active hotspots, and commodity impact analysis."""
+    """Geopolitical risk assessment by region. Returns risk_score (1-10), active conflict or instability signals, and commodity impact analysis showing which commodities are affected. Pass a region name or leave empty for global overview. Use when geopolitical events may affect a trade, supply chain, or commodity position."""
     params = {"region": region} if region else {}
     return _get(f"{BASE}:8040/risk", params)
 
@@ -250,7 +247,7 @@ def gov_edge_opportunities(keyword: str = "", naics: str = "", set_aside: str = 
 
 @mcp.tool()
 def latam_pulse() -> dict:
-    """Latin America economic intelligence — BRL, ARS, COP, MXN, CLP currencies, Argentina dolar blue spread."""
+    """Latin American economic intelligence. Returns per-currency rates (BRL, ARS, COP, MXN, CLP, PEN), argentina_blue_premium_pct (dolar blue vs official — crisis signal when >100%), argentina_signal (stable/pressured/crisis), and commodity context (corn, soy, coffee, copper) with LatAm regional impact. Use for EM FX exposure, Argentina crisis monitoring, or commodity supply chain analysis."""
     return _get(f"{BASE}:8029/report")
 
 
@@ -258,7 +255,7 @@ def latam_pulse() -> dict:
 
 @mcp.tool()
 def news_sentiment(query: str) -> dict:
-    """News sentiment for stocks and crypto. Crypto queries auto-route to native crypto sources; AI synthesizes and returns aggregate_score (-1.0 to +1.0) signal alongside bullish/bearish/neutral."""
+    """Real-time news sentiment for any stock ticker or crypto asset. Returns overall_sentiment (bullish/bearish/neutral), sentiment_score (-1.0 to +1.0), headline_count, and top scored headlines. Crypto queries auto-route to crypto-native sources. Use before a trade to detect sentiment regime or monitor news flow for an asset. Pairs well with equity_analysis(), tech_analysis(), and insider_trading()."""
     return _get(f"{BASE}:8004/news", {"query": query})
 
 
@@ -283,7 +280,7 @@ def weather_forecast(city: str, date: str = "", threshold: float = None, directi
 
 @mcp.tool()
 def content_forge(url: str) -> dict:
-    """Transform any URL into LinkedIn post, tweet thread, newsletter section, and SEO summary."""
+    """Repurpose any URL into four content formats in one call: LinkedIn post, tweet thread, newsletter section, and SEO meta summary. Best for turning research reports, blog posts, or news articles into ready-to-publish social content. Cost: $0.15 via x402."""
     try:
         r = httpx.post(f"{BASE}:8013/repurpose", json={"url": url}, timeout=60)
         return r.json()
@@ -420,11 +417,40 @@ def wallet_pnl(wallet: str, days: int = 30) -> dict:
     return _get(f"{BASE}:8044/pnl", {"wallet": wallet, "days": days})
 
 
+@mcp.tool()
+def funding_rates(asset: str = "") -> dict:
+    """Perpetual futures funding rates across Binance, Bybit, OKX for BTC/ETH/SOL/AVAX/LINK/ARB.
+    Signal-first: LONG_HEAVY/SHORT_HEAVY/NEUTRAL/MIXED/EXTREME_LONG/EXTREME_SHORT.
+    Returns annualized rates, per-exchange breakdown, extreme alert, and AI market bias.
+    Optional asset param filters to a single coin."""
+    params = {"asset": asset} if asset else {}
+    return _get(f"{BASE}:8046/rates", params)
+
+
+@mcp.tool()
+def open_interest() -> dict:
+    """Perpetual futures open interest across OKX, Hyperliquid, dYdX for BTC/ETH/SOL/AVAX/LINK/ARB.
+    Signal-first: ACCUMULATING (OI rising) / DELEVERAGING (OI falling) / MIXED.
+    Returns USD totals, per-exchange breakdown, 5-min OI delta, and dominant exchange per asset.
+    Pairs with funding_rates() for a complete positioning picture."""
+    return _get(f"{BASE}:8047/oi", {})
+
+
+@mcp.tool()
+def liquidations() -> dict:
+    """Perp liquidation data across OKX for BTC/ETH/SOL/AVAX/LINK/ARB.
+    Signal-first: LONG_CASCADE/SHORT_CASCADE/BALANCED/EXTREME.
+    Shows long vs short liquidation volume, biggest single events, hottest price zones.
+    Pairs with funding_rates() and open_interest() for complete positioning picture.
+    Higher-signal than OI or funding rates — shows what has already been forced out."""
+    return _get(f"{BASE}:8048/liquidations", {})
+
+
 # ── Autonomous Agent ──────────────────────────────────────────────────────────
 
 @mcp.tool()
 def hire_floyd(task: str, repo: str = "", context: str = "") -> dict:
-    """Hire Floyd autonomous coding agent. Writes code and opens pull requests on GitHub."""
+    """Hire Floyd, LoneStarOracle's autonomous coding agent. Analyzes a GitHub repo, writes code, runs tests, and opens a pull request. Pass a task description and optional repo URL. Returns pr_url when complete. Best for well-scoped coding tasks: bug fixes, feature additions, test coverage, refactors. Floyd also hunts GitHub bounties, does web research, and can handle complex multi-step tasks with context. Cost: $0.50 via x402."""
     payload = {"task": task}
     if repo:
         payload["repo"] = repo
