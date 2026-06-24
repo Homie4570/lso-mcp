@@ -77,7 +77,7 @@ Add to your `claude_desktop_config.json`:
   "mcpServers": {
     "lonestaroracle": {
       "command": "npx",
-      "args": ["-y", "supergateway", "--sse", "https://mcp.lonestaroracle.xyz/sse"]
+      "args": ["-y", "mcp-remote", "https://mcp.lonestaroracle.xyz/mcp"]
     }
   }
 }
@@ -85,7 +85,7 @@ Add to your `claude_desktop_config.json`:
 
 ### With any MCP client
 
-SSE endpoint: `https://mcp.lonestaroracle.xyz/sse`
+Streamable HTTP endpoint: `https://mcp.lonestaroracle.xyz/mcp`
 
 ### Self-hosted (Docker)
 
